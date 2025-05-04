@@ -168,17 +168,24 @@ namespace WindowsFormsApp1.Presentation
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            if(UserSession.Instance.Role == "Author")
+            try
             {
-                var authorId = UserSession.Instance.UserId;
-                var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                System.Console.WriteLine(authorId+cBBCategory.Text+cBBStatus.Text+txtSearch.Text);
-                dgvPost.DataSource = postData;
-            } 
-            else
+                if (UserSession.Instance.Role == "Author")
+                {
+                    var authorId = UserSession.Instance.UserId;
+                    var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                    System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
+                    dgvPost.DataSource = postData;
+                }
+                else
+                {
+                    var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                    dgvPost.DataSource = postData;
+                }
+            }
+            catch (Exception ex)
             {
-                var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                dgvPost.DataSource = postData;
+                MessageBox.Show(ex.Message.ToString());
             }
         }
 
@@ -206,33 +213,40 @@ namespace WindowsFormsApp1.Presentation
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (dgvPost.SelectedRows.Count != 1)
+            try
             {
-                MessageBox.Show("Vui lòng chọn 1 bài báo để xóa", "Thông báo",MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            Guid postId = Guid.Parse(dgvPost.SelectedRows[0].Cells["PostId"].Value.ToString());
-            DialogResult result = MessageBox.Show(
-                "Bạn có chắc chắn muốn xóa bài báo này?",
-                "Xác nhận xóa",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning,
-                MessageBoxDefaultButton.Button2); // Mặc định chọn No
-            if (result == DialogResult.Yes)
-            {
-                var postService = new PostService(new PostRepository(new ApplicationDbContext()));
-                postService.SoftDeletePost(postId);
-                MessageBox.Show("Xóa bài báo thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                if (UserSession.Instance.Role.Equals("Author"))
+                if (dgvPost.SelectedRows.Count != 1)
                 {
-                    var postData = postService.SearchByAuthor(UserSession.Instance.UserId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                    dgvPost.DataSource = postData;
+                    MessageBox.Show("Vui lòng chọn 1 bài báo để xóa", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
-                if(UserSession.Instance.Role.Equals("Admin"))
+                Guid postId = Guid.Parse(dgvPost.SelectedRows[0].Cells["PostId"].Value.ToString());
+                DialogResult result = MessageBox.Show(
+                    "Bạn có chắc chắn muốn xóa bài báo này?",
+                    "Xác nhận xóa",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2); // Mặc định chọn No
+                if (result == DialogResult.Yes)
                 {
-                    var postData = postService.SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                    dgvPost.DataSource = postData;
-                }    
+                    var postService = new PostService(new PostRepository(new ApplicationDbContext()));
+                    postService.SoftDeletePost(postId);
+                    MessageBox.Show("Xóa bài báo thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (UserSession.Instance.Role.Equals("Author"))
+                    {
+                        var postData = postService.SearchByAuthor(UserSession.Instance.UserId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                        dgvPost.DataSource = postData;
+                    }
+                    if (UserSession.Instance.Role.Equals("Admin"))
+                    {
+                        var postData = postService.SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                        dgvPost.DataSource = postData;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 

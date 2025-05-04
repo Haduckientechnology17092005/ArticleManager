@@ -78,11 +78,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\IServices\IAuthService.cs" />
+    <Compile Include="BLL\IServices\ICategoryService.cs" />
+    <Compile Include="BLL\IServices\ICommentService.cs" />
     <Compile Include="BLL\Services\AuthService.cs" />
     <Compile Include="BLL\Services\CategoryService.cs" />
     <Compile Include="BLL\Services\CommentService.cs" />
     <Compile Include="BLL\Services\PostService.cs" />
     <Compile Include="BLL\Services\UserService.cs" />
+    <Compile Include="DAL\IRepository\ICategoryRepository.cs" />
+    <Compile Include="DAL\IRepository\ICommentRepository.cs" />
+    <Compile Include="DAL\IRepository\IPostRepository.cs" />
+    <Compile Include="DAL\IRepository\IUserRepository.cs" />
     <Compile Include="DAL\Models\ApplicationDbContext.cs" />
     <Compile Include="DAL\Models\Category.cs" />
     <Compile Include="DAL\Models\Comment.cs" />
@@ -267,10 +274,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BLL\IServices\" />
-    <Folder Include="DAL\IRepository\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

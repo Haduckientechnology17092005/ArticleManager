@@ -20,11 +20,16 @@ namespace WindowsFormsApp1.BLL.Services
         }
         public List<string> GetAllPostStatus()
         {
-            var statuses = Enum.GetValues(typeof(PostStatus))
-                .Cast<PostStatus>()
-                .Select(s => s.ToString())
-                .ToList();
-            return statuses;
+            try
+            {
+                var statuses = Enum.GetValues(typeof(PostStatus))
+                    .Cast<PostStatus>()
+                    .Select(s => s.ToString())
+                    .ToList();
+                return statuses;
+            } catch (Exception ex) {
+                throw new Exception(ex.Message);
+            }
         }
         public List<Post> GetAllPosts()
         {
@@ -203,7 +208,14 @@ namespace WindowsFormsApp1.BLL.Services
         }
         public List<Post> GetAllActivePosts()
         {
-            return _postRepository.GetAllPosts().Where(p => !p.IsDeleted).ToList();
+            try
+            {
+                return _postRepository.GetAllPosts().Where(p => !p.IsDeleted).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
         public List<Post> GetPostsByStatus(PostStatus status)
         {
@@ -221,38 +233,59 @@ namespace WindowsFormsApp1.BLL.Services
         //Lọc bài viết theo quyền tac gia
         public List<Post> FilteredPostsAuthor (Guid currentUserId)
         {
-            var allPosts = GetAllPosts();
-            var filteredPosts = allPosts.Where(p => p.UserId == currentUserId || p.Status == PostStatus.Approved).ToList();
-            return filteredPosts;
+            try
+            {
+                var allPosts = GetAllPosts();
+                var filteredPosts = allPosts.Where(p => p.UserId == currentUserId || p.Status == PostStatus.Approved).ToList();
+                return filteredPosts;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
         //Loc bai viet theo quyen nnguoi doc
         public List<Post> FilteredPostsReader ()
         {
-            var allPosts = GetAllPosts();
-            var filteredPosts = allPosts.Where(p => p.Status == PostStatus.Approved && !p.IsDeleted).ToList();
-            return filteredPosts;
+            try
+            {
+                var allPosts = GetAllPosts();
+                var filteredPosts = allPosts.Where(p => p.Status == PostStatus.Approved && !p.IsDeleted).ToList();
+                return filteredPosts;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
         public List<PostManagerDTO> MapPostsToPostWithCategoryDTO(List<Post> posts, List<Category> categories, List<Comment> comments, List<User> users)
         {
-            var postData = new List<PostManagerDTO>();
-            foreach (var post in posts)
+            try
             {
-                var category = categories.FirstOrDefault(c => c.CategoryId == post.CategoryId);
-                var user = users.FirstOrDefault(u => u.UserId == post.UserId);
-                var commentCount = comments.Count(c => c.PostId == post.PostId);
-                postData.Add(new PostManagerDTO
+                var postData = new List<PostManagerDTO>();
+                foreach (var post in posts)
                 {
-                    PostId = post.PostId,
-                    PostName = post.Title,
-                    AuthorName = user?.Username,
-                    CategoryName = category?.Name,
-                    CreatedAt = post.CreatedAt,
-                    CountComment = commentCount,
-                    //Status la enum nen can convert
-                    Status = post.Status.ToString(),
-                });
+                    var category = categories.FirstOrDefault(c => c.CategoryId == post.CategoryId);
+                    var user = users.FirstOrDefault(u => u.UserId == post.UserId);
+                    var commentCount = comments.Count(c => c.PostId == post.PostId);
+                    postData.Add(new PostManagerDTO
+                    {
+                        PostId = post.PostId,
+                        PostName = post.Title,
+                        AuthorName = user?.Username,
+                        CategoryName = category?.Name,
+                        CreatedAt = post.CreatedAt,
+                        CountComment = commentCount,
+                        //Status la enum nen can convert
+                        Status = post.Status.ToString(),
+                    });
+                }
+                return postData;
             }
-            return postData;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
         public List<PostManagerDTO> SearchByAuthor(Guid authorId, string category, string status, string postTitle)
         {
@@ -302,104 +335,126 @@ namespace WindowsFormsApp1.BLL.Services
         }
         public List<PostManagerDTO> SearchByAdmin(string category, string status, string postTitle)
         {
-            var posts = GetAllActivePosts();
-            var categoryService = new CategoryService(new CategoryRepository(new ApplicationDbContext()));
-            var categories = categoryService.GetAllCategories();
-            var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
-            var comments = commentService.GetAllComments();
-            var userService = new UserService(new UserRepository(new ApplicationDbContext()));
-            var users = userService.GetAllUsers();
-
-            // Lọc theo Category nếu không phải "All"
-            if (!string.IsNullOrEmpty(category) && category != "All")
+            try
             {
-                var selectedCategory = categories.FirstOrDefault(c => c.Name == category);
-                if (selectedCategory != null)
+                var posts = GetAllActivePosts();
+                var categoryService = new CategoryService(new CategoryRepository(new ApplicationDbContext()));
+                var categories = categoryService.GetAllCategories();
+                var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
+                var comments = commentService.GetAllComments();
+                var userService = new UserService(new UserRepository(new ApplicationDbContext()));
+                var users = userService.GetAllUsers();
+
+                // Lọc theo Category nếu không phải "All"
+                if (!string.IsNullOrEmpty(category) && category != "All")
                 {
-                    posts = posts.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+                    var selectedCategory = categories.FirstOrDefault(c => c.Name == category);
+                    if (selectedCategory != null)
+                    {
+                        posts = posts.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+                    }
+                    else
+                    {
+                        posts = new List<Post>(); // Không tìm thấy category -> trả về rỗng
+                    }
                 }
-                else
+
+                // Lọc theo Status nếu không phải "All"
+                if (!string.IsNullOrEmpty(status) && status != "All")
                 {
-                    posts = new List<Post>(); // Không tìm thấy category -> trả về rỗng
+                    posts = posts.Where(p => p.Status.ToString() == status).ToList();
                 }
-            }
 
-            // Lọc theo Status nếu không phải "All"
-            if (!string.IsNullOrEmpty(status) && status != "All")
-            {
-                posts = posts.Where(p => p.Status.ToString() == status).ToList();
+                // Lọc theo tiêu đề nếu có nhập
+                if (!string.IsNullOrEmpty(postTitle))
+                {
+                    posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                }
+                return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
             }
-
-            // Lọc theo tiêu đề nếu có nhập
-            if (!string.IsNullOrEmpty(postTitle))
+            catch (Exception ex)
             {
-                posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                throw new Exception(ex.Message);
             }
-            return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
         }
         public List<PostManagerDTO> SearchByUser(string category, string postTitle)
         {
-            var posts = FilteredPostsReader();
-            var categoryService = new CategoryService(new CategoryRepository(new ApplicationDbContext()));
-            var categories = categoryService.GetAllCategories();
-            var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
-            var comments = commentService.GetAllComments();
-            var userService = new UserService(new UserRepository(new ApplicationDbContext()));
-            var users = userService.GetAllUsers();
-            // Lọc theo Category nếu không phải "All"
-            if (!string.IsNullOrEmpty(category) && category != "All")
+            try
             {
-                var selectedCategory = categories.FirstOrDefault(c => c.Name == category);
-                if (selectedCategory != null)
+                var posts = FilteredPostsReader();
+                var categoryService = new CategoryService(new CategoryRepository(new ApplicationDbContext()));
+                var categories = categoryService.GetAllCategories();
+                var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
+                var comments = commentService.GetAllComments();
+                var userService = new UserService(new UserRepository(new ApplicationDbContext()));
+                var users = userService.GetAllUsers();
+                // Lọc theo Category nếu không phải "All"
+                if (!string.IsNullOrEmpty(category) && category != "All")
                 {
-                    posts = posts.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+                    var selectedCategory = categories.FirstOrDefault(c => c.Name == category);
+                    if (selectedCategory != null)
+                    {
+                        posts = posts.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+                    }
+                    else
+                    {
+                        posts = new List<Post>(); // Không tìm thấy category -> trả về rỗng
+                    }
                 }
-                else
-                {
-                    posts = new List<Post>(); // Không tìm thấy category -> trả về rỗng
-                }
-            }
 
-            // Lọc theo tiêu đề nếu có nhập
-            if (!string.IsNullOrEmpty(postTitle))
+                // Lọc theo tiêu đề nếu có nhập
+                if (!string.IsNullOrEmpty(postTitle))
+                {
+                    posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                }
+                return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
+            } catch (Exception ex)
             {
-                posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+                throw new Exception(ex.Message, ex);
             }
-            return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
         }
         public PostViewingDTO ShowPostViewingUser(Guid postId)
         {
-            var post = GetPostById(postId);
-            var user = new UserService(new UserRepository(new ApplicationDbContext())).GetUserById(post.UserId);
-            var catagory = new CategoryService(new CategoryRepository(new ApplicationDbContext())).FindCategoryById(post.CategoryId);
-            var comments = new CommentService(new CommentRepository(new ApplicationDbContext())).GetCommentsByPost(postId);
-            List<CommentDTO> commentDTOs = new List<CommentDTO>();
-            foreach (var comment in comments) {
-                var commentDTO = new CommentDTO
-                {
-                    CommentId = comment.CommentId,
-                    Content = comment.Content,
-                    PostId = postId,
-                    UserId = comment.UserId,
-                    UserName = new UserService(new UserRepository(new ApplicationDbContext())).GetUserById(comment.UserId).Username.ToString(),
-                    CreatedAt = comment.CreatedAt,
-                };
-                commentDTOs.Add(commentDTO);
-            }
-            var postData = new PostViewingDTO
+            try
             {
-                PostId = postId,
-                Title = post.Title,
-                Category = catagory.Name,
-                AuthorName = user.Username,
-                AuthorId = post.UserId,
-                Status = post.Status.ToString(),
-                Content = post.Content,
-                Response = post.ResponseContent,
-                Comments = commentDTOs
-            };
-            System.Console.WriteLine(postData.Content+ "\n" + postData.Comments);
-            return postData;
+                var post = GetPostById(postId);
+                var user = new UserService(new UserRepository(new ApplicationDbContext())).GetUserById(post.UserId);
+                var catagory = new CategoryService(new CategoryRepository(new ApplicationDbContext())).FindCategoryById(post.CategoryId);
+                var comments = new CommentService(new CommentRepository(new ApplicationDbContext())).GetCommentsByPost(postId);
+                List<CommentDTO> commentDTOs = new List<CommentDTO>();
+                foreach (var comment in comments)
+                {
+                    var commentDTO = new CommentDTO
+                    {
+                        CommentId = comment.CommentId,
+                        Content = comment.Content,
+                        PostId = postId,
+                        UserId = comment.UserId,
+                        UserName = new UserService(new UserRepository(new ApplicationDbContext())).GetUserById(comment.UserId).Username.ToString(),
+                        CreatedAt = comment.CreatedAt,
+                    };
+                    commentDTOs.Add(commentDTO);
+                }
+                var postData = new PostViewingDTO
+                {
+                    PostId = postId,
+                    Title = post.Title,
+                    Category = catagory.Name,
+                    AuthorName = user.Username,
+                    AuthorId = post.UserId,
+                    Status = post.Status.ToString(),
+                    Content = post.Content,
+                    Response = post.ResponseContent,
+                    Comments = commentDTOs
+                };
+                System.Console.WriteLine(postData.Content + "\n" + postData.Comments);
+                return postData;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                throw new Exception(ex.Message, ex);
+            }
         }
 
     }

@@ -31,61 +31,75 @@ namespace WindowsFormsApp1.Presentation
         }
         public void GUI()
         {
-            if (_userId == Guid.Empty)
+            try
             {
-                txtUserId.Text = string.Empty;
-                txtUsername.Text = string.Empty;
-                txtEmail.Text = string.Empty;
-                rbtnAdmin.Checked = false;
-                rbtnAuthor.Checked = false;
-                rbtnReader.Checked = false;
-                txtCreatedAt.Text = string.Empty;
-                txtPassword.Text = string.Empty;
-                txtNewPassword.Text = string.Empty;
-                txtNewPassword.ReadOnly = true;
+                if (_userId == Guid.Empty)
+                {
+                    txtUserId.Text = string.Empty;
+                    txtUsername.Text = string.Empty;
+                    txtEmail.Text = string.Empty;
+                    rbtnAdmin.Checked = false;
+                    rbtnAuthor.Checked = false;
+                    rbtnReader.Checked = false;
+                    txtCreatedAt.Text = string.Empty;
+                    txtPassword.Text = string.Empty;
+                    txtNewPassword.Text = string.Empty;
+                    txtNewPassword.ReadOnly = true;
+                }
+                else
+                {
+                    LoadGUI(_userId);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                LoadGUI(_userId);
+                MessageBox.Show(ex.Message.ToString());
             }
         }
         public DataTable GetRecords()
         {
-            var userService = new UserService(new UserRepository(new ApplicationDbContext()));
-            var postService = new PostService(new PostRepository(new ApplicationDbContext()));
-            var users = userService.GetAllUsers();
-            var posts = postService.GetAllPosts();
-
-            // Create a DataTable to store the data
-            var dataTable = new DataTable();
-            dataTable.Columns.Add("UserId", typeof(Guid));
-            dataTable.Columns.Add("Username", typeof(string));
-            dataTable.Columns.Add("Email", typeof(string));
-            dataTable.Columns.Add("Role", typeof(string));
-            dataTable.Columns.Add("Password", typeof(string));
-            dataTable.Columns.Add("CreatedAt", typeof(DateTime));
-            dataTable.Columns.Add("PostCount", typeof(int));
-
-            // Populate the DataTable with data
-            foreach (var user in users)
+            try
             {
-                var postCount = posts.Count(p => p.UserId == user.UserId);
-                dataTable.Rows.Add(
-                    user.UserId,
-                    user.Username,
-                    user.Email,
-                    user.Role,
-                    user.Password,
-                    user.CreatedAt,
-                    postCount
-                );
+                var userService = new UserService(new UserRepository(new ApplicationDbContext()));
+                var postService = new PostService(new PostRepository(new ApplicationDbContext()));
+                var users = userService.GetAllUsers();
+                var posts = postService.GetAllPosts();
+
+                // Create a DataTable to store the data
+                var dataTable = new DataTable();
+                dataTable.Columns.Add("UserId", typeof(Guid));
+                dataTable.Columns.Add("Username", typeof(string));
+                dataTable.Columns.Add("Email", typeof(string));
+                dataTable.Columns.Add("Role", typeof(string));
+                dataTable.Columns.Add("Password", typeof(string));
+                dataTable.Columns.Add("CreatedAt", typeof(DateTime));
+                dataTable.Columns.Add("PostCount", typeof(int));
+
+                // Populate the DataTable with data
+                foreach (var user in users)
+                {
+                    var postCount = posts.Count(p => p.UserId == user.UserId);
+                    dataTable.Rows.Add(
+                        user.UserId,
+                        user.Username,
+                        user.Email,
+                        user.Role,
+                        user.Password,
+                        user.CreatedAt,
+                        postCount
+                    );
+                }
+                //fix was null
+                if (dataTable.Rows.Count == 0)
+                {
+                    dataTable.Rows.Add(Guid.Empty, string.Empty, string.Empty, 0, string.Empty, string.Empty, DateTime.MinValue);
+                }
+                return dataTable;
             }
-            //fix was null
-            if (dataTable.Rows.Count == 0)
+            catch (Exception ex)
             {
-                dataTable.Rows.Add(Guid.Empty, string.Empty, string.Empty, 0, string.Empty, string.Empty, DateTime.MinValue);
+                throw new Exception(ex.Message);
             }
-            return dataTable;
         }
         public FormCreateEditUser()
         {

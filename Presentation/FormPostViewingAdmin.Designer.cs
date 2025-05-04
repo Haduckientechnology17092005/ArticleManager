@@ -38,7 +38,6 @@
             this.txtCategory = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
             this.dgvCmt = new System.Windows.Forms.DataGridView();
-            this.rTxtContent = new System.Windows.Forms.RichTextBox();
             this.btnCmt = new System.Windows.Forms.Button();
             this.btnReturn = new System.Windows.Forms.Button();
             this.label7 = new System.Windows.Forms.Label();
@@ -49,6 +48,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
+            this.rTxtContent = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCmt)).BeginInit();
             this.SuspendLayout();
             // 
@@ -137,15 +137,6 @@
             this.dgvCmt.Size = new System.Drawing.Size(773, 119);
             this.dgvCmt.TabIndex = 10;
             this.dgvCmt.SelectionChanged += new System.EventHandler(this.dgvCmt_SelectionChanged);
-            // 
-            // rTxtContent
-            // 
-            this.rTxtContent.Enabled = false;
-            this.rTxtContent.Location = new System.Drawing.Point(15, 76);
-            this.rTxtContent.Name = "rTxtContent";
-            this.rTxtContent.Size = new System.Drawing.Size(773, 178);
-            this.rTxtContent.TabIndex = 11;
-            this.rTxtContent.Text = "";
             // 
             // btnCmt
             // 
@@ -245,6 +236,15 @@
             this.btnDelete.UseVisualStyleBackColor = true;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
+            // rTxtContent
+            // 
+            this.rTxtContent.Location = new System.Drawing.Point(15, 76);
+            this.rTxtContent.Name = "rTxtContent";
+            this.rTxtContent.ReadOnly = true;
+            this.rTxtContent.Size = new System.Drawing.Size(773, 178);
+            this.rTxtContent.TabIndex = 11;
+            this.rTxtContent.Text = "";
+            // 
             // FormPostViewingAdmin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -291,7 +291,6 @@
         private System.Windows.Forms.TextBox txtCategory;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.DataGridView dgvCmt;
-        private System.Windows.Forms.RichTextBox rTxtContent;
         private System.Windows.Forms.Button btnCmt;
         private System.Windows.Forms.Button btnReturn;
         private System.Windows.Forms.Label label7;
@@ -302,5 +301,6 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnEdit;
         private System.Windows.Forms.Button btnDelete;
+        private System.Windows.Forms.RichTextBox rTxtContent;
     }
 }

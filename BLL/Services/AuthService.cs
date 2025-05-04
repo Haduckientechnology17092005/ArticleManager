@@ -8,10 +8,11 @@ using WindowsFormsApp1.DTOs;
 using WindowsFormsApp1.DAL.Repository;
 using BCrypt.Net;
 using System.Text.RegularExpressions;
+using WindowsFormsApp1.BLL.IServices;
 
 namespace WindowsFormsApp1.BLL.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly UserRepository _userRepository;
         public AuthService(UserRepository userRepository)
