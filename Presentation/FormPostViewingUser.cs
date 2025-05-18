@@ -21,10 +21,16 @@ namespace WindowsFormsApp1.Presentation
         public new delegate void Load(DataTable li);
         private Load _loadDGV;
         private Guid _postId { get; set; }
+        //private readonly ApplicationDbContext _context;
+        //private readonly PostService _postService;
+        //private readonly CommentService _commentService;
         public FormPostViewingUser(Guid postId)
         {
             InitializeComponent();
             _postId = postId;
+            //_context = new ApplicationDbContext();
+            //_postService = new PostService(new PostRepository(_context));
+            //_commentService = new CommentService(new CommentRepository(_context));
             LoadGUI(postId);
         }
         public FormPostViewingUser(Guid postId, Load LoadDGV)
@@ -32,37 +38,56 @@ namespace WindowsFormsApp1.Presentation
             InitializeComponent();
             _postId = postId;
             _loadDGV = LoadDGV;
+            //_context = new ApplicationDbContext();
+            //_postService = new PostService(new PostRepository(_context));
+            //_commentService = new CommentService(new CommentRepository(_context));
             LoadGUI(postId);
         }
         private void LoadGUI(Guid postId)
         {
-            var postData = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(postId);
-            txtPostTitle.Text = postData.Title.ToString();
-            txtCategory.Text = postData.Category.ToString();
-            txtAuthor.Text = postData.AuthorName.ToString();
-            txtStatus.Text = postData.Status.ToString();
-            rTxtContent.Text = postData.Content.ToString();
-            rTxtResponse.Text = postData.Response.ToString();
-            dgvCmt.DataSource = postData.Comments.ToArray();
-            if (txtStatus.Text.Equals("Pending") || txtStatus.Text.Equals("Rejected"))
+            try
             {
-                btnAdd.Enabled = false;
-                btnEdit.Enabled = false;
-                btnDelete.Enabled = false;
+                var postData = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(postId);
+                //var postData = _postService.ShowPostViewingUser(postId);
+
+                txtPostTitle.Text = postData.Title.ToString();
+                txtCategory.Text = postData.Category.ToString();
+                txtAuthor.Text = postData.AuthorName.ToString();
+                txtStatus.Text = postData.Status.ToString();
+                rTxtContent.Text = postData.Content.ToString();
+                rTxtResponse.Text = postData.Response.ToString();
+                
+                dgvCmt.DataSource = postData.Comments.OrderByDescending(p => p.CreatedAt).ToList();
+
+                if (txtStatus.Text.Equals("Pending") || txtStatus.Text.Equals("Rejected"))
+                {
+                    btnAdd.Enabled = false;
+                    btnEdit.Enabled = false;
+                    btnDelete.Enabled = false;
+                }
+                if (UserSession.Instance.Role == "Author" && UserSession.Instance.UserId == postData.AuthorId)
+                {
+                    labelResponse.Visible = true;
+                    rTxtResponse.Visible = true;
+                }
+                else
+                {
+                    labelResponse.Visible = false;
+                    rTxtResponse.Visible = false;
+                }
+
+                dgvCmt.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                dgvCmt.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                dgvCmt.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             }
-            if (UserSession.Instance.Role == "Author" && UserSession.Instance.UserId == postData.AuthorId)
+            catch (DbUpdateConcurrencyException ex)
             {
-                labelResponse.Visible = true;
-                rTxtResponse.Visible = true;
+                MessageBox.Show("Lỗi khi tải dữ liệu: " + ex.Message);
             }
-            else
-            { 
-                labelResponse.Visible = false;
-                rTxtResponse.Visible = false;
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi không xác định: " + ex.Message);
             }
-            dgvCmt.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvCmt.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            dgvCmt.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
         }
         public DataTable GetRecords()
         {
@@ -154,9 +179,11 @@ namespace WindowsFormsApp1.Presentation
                 {
                     // Xóa comment được chọn
                     new CommentService(new CommentRepository(new ApplicationDbContext())).DeleteComment(commentId);
+                    //_commentService.DeleteComment(commentId);
 
                     // Cập nhật lại DataGridView
                     dgvCmt.DataSource = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(_postId).Comments;
+                    //dgvCmt.DataSource = _postService.ShowPostViewingUser(_postId).Comments;
                     if (_loadDGV != null)
                     {
                         _loadDGV(GetRecords());

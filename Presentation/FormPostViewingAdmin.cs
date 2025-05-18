@@ -21,23 +21,33 @@ namespace WindowsFormsApp1.Presentation
         public new delegate void Load(DataTable li);
         private Load _loadDGV;
         private Guid _postId { get; set; }
+        //private readonly ApplicationDbContext _context;
+        //private readonly PostService _postService;
+        //private readonly CommentService _commentService;
+        
+
         public FormPostViewingAdmin(Guid postId, Load LoadDGV)
         {
             InitializeComponent();
             _postId = postId;
             _loadDGV = LoadDGV;
+            //_context = new ApplicationDbContext();
+            //_postService = new PostService(new PostRepository(_context));
+            //_commentService = new CommentService(new CommentRepository(_context));
             LoadGUI(_postId);
         }
         private void LoadGUI(Guid postId)
         {
             var postData = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(postId);
+            //var postData = _postService.ShowPostViewingUser(postId);
             txtPostTitle.Text = postData.Title.ToString();
             txtCategory.Text = postData.Category.ToString();
             txtAuthor.Text = postData.AuthorName.ToString();
             txtStatus.Text = postData.Status.ToString();
             rTxtContent.Text = postData.Content.ToString();
             txtResponse.Text = postData.Response.ToString();
-            dgvCmt.DataSource = postData.Comments.ToArray();
+            var postComments = postData.Comments.OrderByDescending(p => p.CreatedAt).ToList();
+            dgvCmt.DataSource = postComments.ToArray();
             if (txtStatus.Text.Equals("Pending"))
             {
                 txtResponse.Enabled = true;
@@ -72,6 +82,7 @@ namespace WindowsFormsApp1.Presentation
             {
                 postDatas = postService.SearchByAdmin("All", "All", null);
             }
+            postDatas.OrderByDescending(p => p.CreatedAt);
             // Create a DataTable to store the data
             var dataTable = new DataTable();
             dataTable.Columns.Add("PostId", typeof(Guid));
@@ -112,6 +123,7 @@ namespace WindowsFormsApp1.Presentation
                 }
 
                 new PostService(new PostRepository(new ApplicationDbContext())).AcceptPost(_postId, txtResponse.Text);
+                //_postService.AcceptPost(_postId, txtResponse.Text);
                 MessageBox.Show("Thực hiện lưu vào cơ sở dữ liệu thành công");
                 if (_loadDGV != null)
                 {
@@ -135,7 +147,9 @@ namespace WindowsFormsApp1.Presentation
                 MessageBox.Show("Không được để trống");
                 return;
             }
+
             new PostService(new PostRepository(new ApplicationDbContext())).RejectPost(_postId, txtResponse.Text);
+            //_postService.RejectPost(_postId, txtResponse.Text);
             if (_loadDGV != null)
             {
                 _loadDGV(GetRecords());
@@ -188,9 +202,11 @@ namespace WindowsFormsApp1.Presentation
                 {
                     // Xóa comment được chọn
                     new CommentService(new CommentRepository(new ApplicationDbContext())).DeleteComment(commentId);
+                    //_commentService.DeleteComment(commentId);
 
                     // Cập nhật lại DataGridView
                     dgvCmt.DataSource = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(_postId).Comments;
+                    //dgvCmt.DataSource = _postService.ShowPostViewingUser(_postId).Comments;
                     if (_loadDGV != null)
                     {
                         _loadDGV(GetRecords());

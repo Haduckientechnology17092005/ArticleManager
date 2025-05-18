@@ -20,9 +20,14 @@ namespace WindowsFormsApp1.Presentation
         public new delegate void Load(DataTable li);
         private Load _loadDGV;
         private Guid _postId { get; set; }
+        //private readonly PostService _postService;
+        //private readonly CategoryService _categoryService;
         public FormCreateEditPost(Guid PostId, Load LoadDGV)
         {
             InitializeComponent();
+            //var dbContext = new ApplicationDbContext();
+            //_postService = new PostService(new PostRepository(dbContext));
+            //_categoryService = new CategoryService(new CategoryRepository(dbContext));
             LoadComboBox();
             _postId = PostId;
             _loadDGV = LoadDGV;
@@ -32,6 +37,7 @@ namespace WindowsFormsApp1.Presentation
         {
             cBBCategory.Items.Clear();
             var categories = new CategoryService(new CategoryRepository(new ApplicationDbContext())).GetAllCategories();
+            //var categories = _categoryService.GetAllCategories();
             cBBCategory.DataSource = categories;
             cBBCategory.DisplayMember = "Name";
             cBBCategory.ValueMember = "CategoryId";
@@ -57,8 +63,11 @@ namespace WindowsFormsApp1.Presentation
             try
             {
                 Guid authorId = UserSession.Instance.UserId;
+
                 var postService = new PostService(new PostRepository(new ApplicationDbContext()));
+                //var postService = _postService;
                 var postData = postService.ShowPostViewingUser(_postId);
+
                 txtPostTitle.Text = postData.Title;
                 cBBCategory.SelectedItem = postData.Category;
                 txtStatus.Text = postData.Status;
@@ -97,9 +106,11 @@ namespace WindowsFormsApp1.Presentation
         {
             var currentUserId = UserSession.Instance.UserId;
             var currentUserRole = UserSession.Instance.Role;
+
             var postService = new PostService(new PostRepository(new ApplicationDbContext()));
             // Lọc bài viết theo quyền
             var postDatas = new List<PostManagerDTO>();
+
             if (currentUserRole == "Author")
             {
                 postDatas = postService.SearchByAuthor(currentUserId, "All", "All", null);
@@ -108,6 +119,7 @@ namespace WindowsFormsApp1.Presentation
             {
                 postDatas = postService.SearchByAdmin("All", "All", null);
             }
+
             // Create a DataTable to store the data
             var dataTable = new DataTable();
             dataTable.Columns.Add("PostId", typeof(Guid));
@@ -143,11 +155,13 @@ namespace WindowsFormsApp1.Presentation
                 {
                     post.PostId = Guid.NewGuid();
                     new PostService(new PostRepository(new ApplicationDbContext())).CreatePost(post);
+                    //_postService.CreatePost(post);
                 }
                 else
                 {
                     post.PostId = _postId;
                     new PostService(new PostRepository(new ApplicationDbContext())).UpdatePost(post);
+                    //_postService.UpdatePost(post);
                 }
                 MessageBox.Show("Thực hiện lưu vào cơ sở dữ liệu thành công");
                 if (_loadDGV != null)
@@ -158,11 +172,13 @@ namespace WindowsFormsApp1.Presentation
             }
             catch (DbUpdateException ex)
             {
-                throw new Exception("Lỗi thực hiện" + ex.Message);
+                //throw new Exception("Lỗi thực hiện" + ex.Message);
+                MessageBox.Show($"Lỗi CSDL: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi thực hiện" + ex.Message);
+                //throw new Exception("Lỗi thực hiện" + ex.Message);
+                MessageBox.Show($"Lỗi: {ex.Message}");
             }
         }
     }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WindowsFormsApp1.DAL.IRepository;
 using WindowsFormsApp1.DAL.Models;
 namespace WindowsFormsApp1.DAL.Repository
 {
-    public class CategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
         private readonly ApplicationDbContext _context;
         public CategoryRepository(ApplicationDbContext context)

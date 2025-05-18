@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using WindowsFormsApp1.DAL.Repository;
 using WindowsFormsApp1.DAL.Models;
 using WindowsFormsApp1.DTOs;
+using System.Windows.Forms.Design;
+using WindowsFormsApp1.BLL.IServices;
 
 namespace WindowsFormsApp1.BLL.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly UserRepository _userRepository;
         public UserService(UserRepository userRepository)
@@ -200,6 +202,19 @@ namespace WindowsFormsApp1.BLL.Services
             {
                 throw new Exception("Error deleting user: " + ex.Message);
             }
+        }
+        public List<UserWithPostCountDTO> MapUsersToUserWithPostCountDTO(IList<User> users, List<Post> posts)
+        {
+            return users.Select(u => new UserWithPostCountDTO
+            {
+                UserId = u.UserId,
+                Username = u.Username,
+                Email = u.Email,
+                PostCount = posts.Count(p => p.UserId == u.UserId),
+                Role = u.Role,
+                Password = u.Password,
+                CreatedAt = u.CreatedAt
+            }).ToList();
         }
     }
 }

@@ -60,5 +60,9 @@ namespace WindowsFormsApp1.DAL.Repository
                 _context.SaveChanges();
             }
         }
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
     }
 }

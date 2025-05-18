@@ -15,9 +15,16 @@ namespace WindowsFormsApp1.Presentation
 {
     public partial class FormReader: Form
     {
+        //private readonly CategoryService _categoryService;
+        //private readonly PostService _postService;
         public FormReader()
         {
             InitializeComponent();
+            //var dbContext = new ApplicationDbContext();
+            //var categoryRepo = new CategoryRepository(dbContext);
+            //var postRepo = new PostRepository(dbContext);
+            //_categoryService = new CategoryService(categoryRepo);
+            //_postService = new PostService(postRepo);
             LoadComboBoxCategory();
             LoadDataGridViewPost();
 
@@ -26,7 +33,10 @@ namespace WindowsFormsApp1.Presentation
         {
             cBBCategory.Items.Clear();
             cBBCategory.Items.Add("All");
+
             var categories = new CategoryService(new CategoryRepository(new ApplicationDbContext())).GetAllCategoriesName();
+            //var categories = _categoryService.GetAllCategoriesName();
+
             foreach (var category in categories)
             {
                 cBBCategory.Items.Add($"{category}");
@@ -36,6 +46,9 @@ namespace WindowsFormsApp1.Presentation
         private void LoadDataGridViewPost()
         {
             var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByUser("All",null);
+            //var postData = _postService.SearchByUser("All", null);
+            postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+
             dgvPost.DataSource = postData;
             dgvPost.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvPost.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
@@ -76,6 +89,8 @@ namespace WindowsFormsApp1.Presentation
         private void btnSearch_Click(object sender, EventArgs e)
         {
             var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByUser(cBBCategory.Text, txtSearch.Text);
+            //var postData = _postService.SearchByUser(cBBCategory.Text, txtSearch.Text);
+            postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
             dgvPost.DataSource = postData;
         }
 

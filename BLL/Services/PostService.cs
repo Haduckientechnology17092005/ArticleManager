@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WindowsFormsApp1.BLL.IServices;
 using WindowsFormsApp1.DAL.Models;
 using WindowsFormsApp1.DAL.Repository;
 using WindowsFormsApp1.DTOs;
@@ -11,7 +12,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WindowsFormsApp1.BLL.Services
 {
-    public class PostService
+    public class PostService : IPostService
     {
         private readonly PostRepository _postRepository;
         public PostService(PostRepository postRepository)
@@ -221,9 +222,7 @@ namespace WindowsFormsApp1.BLL.Services
         {
             try
             {
-                return _postRepository.GetAllPosts()
-                    .Where(p => p.Status == status && !p.IsDeleted)
-                    .ToList();
+                return GetAllActivePosts().Where(p=>p.Status == status).ToList();
             }
             catch (Exception ex)
             {
@@ -235,7 +234,7 @@ namespace WindowsFormsApp1.BLL.Services
         {
             try
             {
-                var allPosts = GetAllPosts();
+                var allPosts = GetAllActivePosts();
                 var filteredPosts = allPosts.Where(p => p.UserId == currentUserId || p.Status == PostStatus.Approved).ToList();
                 return filteredPosts;
             }
@@ -249,8 +248,8 @@ namespace WindowsFormsApp1.BLL.Services
         {
             try
             {
-                var allPosts = GetAllPosts();
-                var filteredPosts = allPosts.Where(p => p.Status == PostStatus.Approved && !p.IsDeleted).ToList();
+                var allPosts = GetAllActivePosts();
+                var filteredPosts = allPosts.Where(p => p.Status == PostStatus.Approved).ToList();
                 return filteredPosts;
             }
             catch (Exception ex)
@@ -280,6 +279,8 @@ namespace WindowsFormsApp1.BLL.Services
                         Status = post.Status.ToString(),
                     });
                 }
+                postData = postData.OrderByDescending(p=> p.CreatedAt).ToList();
+
                 return postData;
             }
             catch (Exception ex)
@@ -325,7 +326,7 @@ namespace WindowsFormsApp1.BLL.Services
                 {
                     posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
                 }
-
+                posts.OrderByDescending(p => p.CreatedAt).ToList();
                 return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
             }
             catch (Exception ex)
@@ -370,6 +371,7 @@ namespace WindowsFormsApp1.BLL.Services
                 {
                     posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
                 }
+                posts.OrderByDescending(p => p.CreatedAt).ToList();
                 return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
             }
             catch (Exception ex)
@@ -407,6 +409,7 @@ namespace WindowsFormsApp1.BLL.Services
                 {
                     posts = posts.Where(p => p.Title.IndexOf(postTitle, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
                 }
+                posts = posts.OrderByDescending(p => p.CreatedAt).ToList();
                 return MapPostsToPostWithCategoryDTO(posts, categories, comments, users);
             } catch (Exception ex)
             {
@@ -447,6 +450,7 @@ namespace WindowsFormsApp1.BLL.Services
                     Response = post.ResponseContent,
                     Comments = commentDTOs
                 };
+                postData.Comments.OrderByDescending(p => p.CreatedAt).ToList();
                 System.Console.WriteLine(postData.Content + "\n" + postData.Comments);
                 return postData;
             }

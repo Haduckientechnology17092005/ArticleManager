@@ -38,7 +38,8 @@ namespace WindowsFormsApp1.Presentation
                 FormUserManagement formUserManagement = new FormUserManagement();
                 formUserManagement.Show();
                 this.Hide();
-            } else
+            } 
+            else
             {
                 MessageBox.Show("You do not have permission to access this feature.");
             }

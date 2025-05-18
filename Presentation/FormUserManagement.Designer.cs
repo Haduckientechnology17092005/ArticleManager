@@ -33,13 +33,13 @@
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnSort = new System.Windows.Forms.Button();
-            this.cBBSort = new System.Windows.Forms.ComboBox();
             this.cBBRole = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.textSearch = new System.Windows.Forms.TextBox();
             this.btnReturn = new System.Windows.Forms.Button();
             this.btnSearch = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.cBBSort = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUser)).BeginInit();
             this.SuspendLayout();
             // 
@@ -89,19 +89,7 @@
             this.btnSort.TabIndex = 4;
             this.btnSort.Text = "Sắp xếp";
             this.btnSort.UseVisualStyleBackColor = true;
-            // 
-            // cBBSort
-            // 
-            this.cBBSort.FormattingEnabled = true;
-            this.cBBSort.Items.AddRange(new object[] {
-            "Bài báo từ cao đến thấp",
-            "Bài báo từ thấp đến cao",
-            "Thời gian từ trước đến hiện tại",
-            "Thời gian từ hiện tại về trước"});
-            this.cBBSort.Location = new System.Drawing.Point(585, 417);
-            this.cBBSort.Name = "cBBSort";
-            this.cBBSort.Size = new System.Drawing.Size(178, 21);
-            this.cBBSort.TabIndex = 5;
+            this.btnSort.Click += new System.EventHandler(this.btnSort_Click);
             // 
             // cBBRole
             // 
@@ -110,6 +98,7 @@
             this.cBBRole.Name = "cBBRole";
             this.cBBRole.Size = new System.Drawing.Size(121, 21);
             this.cBBRole.TabIndex = 6;
+            this.cBBRole.SelectedIndexChanged += new System.EventHandler(this.cBBRole_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -156,6 +145,20 @@
             this.label2.TabIndex = 8;
             this.label2.Text = "Tìm kiếm";
             // 
+            // cBBSort
+            // 
+            this.cBBSort.FormattingEnabled = true;
+            this.cBBSort.Items.AddRange(new object[] {
+            "Thời gian từ hiện tại về trước",
+            "Thời gian từ trước đến hiện tại",
+            "Bài báo từ cao đến thấp",
+            "Bài báo từ thấp đến cao"});
+            this.cBBSort.Location = new System.Drawing.Point(585, 417);
+            this.cBBSort.Name = "cBBSort";
+            this.cBBSort.Size = new System.Drawing.Size(178, 21);
+            this.cBBSort.TabIndex = 5;
+            this.cBBSort.SelectedIndexChanged += new System.EventHandler(this.cBBSort_SelectedIndexChanged);
+            // 
             // FormUserManagement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -188,12 +191,12 @@
         private System.Windows.Forms.Button btnEdit;
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.Button btnSort;
-        private System.Windows.Forms.ComboBox cBBSort;
         private System.Windows.Forms.ComboBox cBBRole;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textSearch;
         private System.Windows.Forms.Button btnReturn;
         private System.Windows.Forms.Button btnSearch;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox cBBSort;
     }
 }

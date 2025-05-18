@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WindowsFormsApp1.BLL.IServices;
 using WindowsFormsApp1.BLL.Services;
 using WindowsFormsApp1.DAL.Models;
 using WindowsFormsApp1.DAL.Repository;
@@ -21,9 +22,15 @@ namespace WindowsFormsApp1.Presentation
         private Guid _postId { get; set; }
         public new delegate void Load(DataTable li);
         private Load _loadDGV;
+        //private CommentService _commentSerivce;
+        //private PostService _postService;
+        //private ApplicationDbContext _context;
         public FormComment(Guid commentId, Guid postId, Load loadDGV)
         {
             InitializeComponent();
+            //_context = new ApplicationDbContext();
+            //_commentSerivce = new CommentService(new CommentRepository(_context));
+            //_postService = new PostService(new PostRepository(_context));
             _commentId = commentId;
             _loadDGV = loadDGV;
             _postId = postId;
@@ -52,6 +59,8 @@ namespace WindowsFormsApp1.Presentation
             try
             {
                 var comment = new CommentService(new CommentRepository(new ApplicationDbContext())).FindCommentById(commentId);
+                //var comment = _commentSerivce.FindCommentById(commentId);
+
                 if (comment != null)
                 {
                     txtComment.Text = comment.Content.ToString();
@@ -74,6 +83,7 @@ namespace WindowsFormsApp1.Presentation
                     comment.UserId = UserSession.Instance.UserId;
                     comment.PostId = _postId;
                     new CommentService(new CommentRepository(new ApplicationDbContext())).AddComment(comment);
+                    //_commentSerivce.AddComment(comment);
                 }
                 else
                 {
@@ -83,6 +93,7 @@ namespace WindowsFormsApp1.Presentation
                     comment.PostId = _postId;
                     comment.UserId = UserSession.Instance.UserId;
                     new CommentService(new CommentRepository(new ApplicationDbContext())).UpdateComment(comment);
+                    //_commentSerivce.UpdateComment(comment);
                 }
                 if (_loadDGV != null)
                 {
@@ -99,9 +110,14 @@ namespace WindowsFormsApp1.Presentation
             try
             {
                 var currentUserId = UserSession.Instance.UserId;
+
                 var postData = new PostService(new PostRepository(new ApplicationDbContext())).ShowPostViewingUser(_postId);
-                var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
+                //var postData = _postService.ShowPostViewingUser(_postId);
+
+                //var commentService = new CommentService(new CommentRepository(new ApplicationDbContext()));
                 var commentsData = postData.Comments.ToList();
+                commentsData = commentsData.OrderByDescending(p => p.CreatedAt).ToList();
+
                 // Create a DataTable to store the data
                 var dataTable = new DataTable();
                 dataTable.Columns.Add("CommentId", typeof(Guid));

@@ -81,6 +81,8 @@
     <Compile Include="BLL\IServices\IAuthService.cs" />
     <Compile Include="BLL\IServices\ICategoryService.cs" />
     <Compile Include="BLL\IServices\ICommentService.cs" />
+    <Compile Include="BLL\IServices\IPostService.cs" />
+    <Compile Include="BLL\IServices\IUserService.cs" />
     <Compile Include="BLL\Services\AuthService.cs" />
     <Compile Include="BLL\Services\CategoryService.cs" />
     <Compile Include="BLL\Services\CommentService.cs" />

@@ -22,11 +22,18 @@ namespace WindowsFormsApp1.Presentation
         public new delegate void Load(DataTable li);
         private Load _loadDGV;
         private Guid _userId { get; set; }
+        //private readonly UserService _userService;
+        //private readonly PostService _postService;
+        //private readonly ApplicationDbContext _context;
+
         public FormCreateEditUser(Guid UserId, Load LoadDGV)
         {
             InitializeComponent();
             _userId = UserId;
             _loadDGV = LoadDGV;
+            //_context = new ApplicationDbContext();
+            //_userService = new UserService(new UserRepository(_context));
+            //_postService = new PostService(new PostRepository(_context));
             GUI();
         }
         public void GUI()
@@ -104,6 +111,9 @@ namespace WindowsFormsApp1.Presentation
         public FormCreateEditUser()
         {
             InitializeComponent();
+            //_context = new ApplicationDbContext();
+            //_userService = new UserService(new UserRepository(_context));
+            //_postService = new PostService(new PostRepository(_context));
             LoadGUI(UserSession.Instance.UserId);
         }
         public void LoadGUI(Guid userId)
@@ -133,7 +143,7 @@ namespace WindowsFormsApp1.Presentation
                     rbtnReader.Checked = true;
                     rbtnReader.Enabled = true;
                 }
-                //Nếu là admin chỉnh sửa trong phiên đăng nhập thì cho phép chỉnh sửa role
+                //Nếu là admin chỉnh sửa trong phiên đăng nhập thì cho phép chỉnh sửa
                 if (UserSession.Instance.Role == "Admin")
                 {
                     rbtnAdmin.Enabled = true;

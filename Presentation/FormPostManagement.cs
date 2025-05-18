@@ -17,9 +17,12 @@ namespace WindowsFormsApp1.Presentation
 {
     public partial class FormPostManagement: Form
     {
+        //private readonly PostService _postService;
         public FormPostManagement()
         {
             InitializeComponent();
+            //var dbContext = new ApplicationDbContext();
+            //_postService = new PostService(new PostRepository(dbContext));
             LoadComboBoxCategory();
             LoadComboBoxPostStatus();
             LoadDataGridViewPost();
@@ -59,7 +62,6 @@ namespace WindowsFormsApp1.Presentation
                 {
                     postData = postService.SearchByAdmin("All", "All", null);
                 }
-                
                 dgvPost.DataSource = postData;
             }
             catch (Exception ex)
@@ -81,8 +83,8 @@ namespace WindowsFormsApp1.Presentation
         }
         private void LoadComboBoxPostStatus()
         {
-            var postStatusService = new PostService(new PostRepository(new ApplicationDbContext()));
-            var statuses = postStatusService.GetAllPostStatus();
+            var postService = new PostService(new PostRepository(new ApplicationDbContext()));
+            var statuses = postService.GetAllPostStatus();
             cBBStatus.Items.Clear();
             cBBStatus.Items.Add("All");
             foreach (var status in statuses)
@@ -137,6 +139,7 @@ namespace WindowsFormsApp1.Presentation
                 if (UserSession.Instance?.Role == "Author" && status == "Pending")
                 {
                     var post = new PostService(new PostRepository(new ApplicationDbContext())).GetPostById(postId);
+                    //var post = _postService.GetPostById(postId);
                     bool isOwner = post?.UserId == UserSession.Instance.UserId;
 
                     btnEdit.Enabled = isOwner;
@@ -147,6 +150,7 @@ namespace WindowsFormsApp1.Presentation
                 if (UserSession.Instance?.Role == "Author" && status == "Approved")
                 {
                     var post = new PostService(new PostRepository(new ApplicationDbContext())).GetPostById(postId);
+                    //var post = _postService.GetPostById(postId);
                     bool isOwner = post?.UserId == UserSession.Instance.UserId;
 
                     btnEdit.Enabled = false;
@@ -170,18 +174,22 @@ namespace WindowsFormsApp1.Presentation
         {
             try
             {
-                if (UserSession.Instance.Role == "Author")
-                {
-                    var authorId = UserSession.Instance.UserId;
-                    var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                    System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
-                    dgvPost.DataSource = postData;
-                }
-                else
-                {
-                    var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
-                    dgvPost.DataSource = postData;
-                }
+                //if (UserSession.Instance.Role == "Author")
+                //{
+                //    var authorId = UserSession.Instance.UserId;
+                //    //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //    var postData = _postService.SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text); 
+                //    System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
+                //    dgvPost.DataSource = postData;
+                //}
+                //else
+                //{
+                //    var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //    dgvPost.DataSource = postData;
+                //}
+                //cBBSort.SelectedIndex = 1;
+                LoadPostData();
+                cBBSort.SelectedIndex = 1;
             }
             catch (Exception ex)
             {
@@ -279,6 +287,116 @@ namespace WindowsFormsApp1.Presentation
         private void dgvPost_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
+        }
+
+        private void btnSort_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                //if(cBBSort.Text == "")
+                //{
+                //    if (UserSession.Instance.Role == "Author")
+                //    {
+                //        var authorId = UserSession.Instance.UserId;
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+                //        System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
+                //        dgvPost.DataSource = postData;
+                //    }
+                //    else
+                //    {
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+                //        dgvPost.DataSource = postData;
+                //    }
+                //} else if (cBBSort.Text == "Thời gian từ hiện tại về trước")
+                //{
+                //    if (UserSession.Instance.Role == "Author")
+                //    {
+                //        var authorId = UserSession.Instance.UserId;
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text); 
+                //        postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+                //        System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
+                //        dgvPost.DataSource = postData;
+                //    }
+                //    else
+                //    {
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+                //        dgvPost.DataSource = postData;
+                //    }
+                //} else if (cBBSort.Text == "Thời gian từ trước đến hiện tại")
+                //{
+                //    if (UserSession.Instance.Role == "Author")
+                //    {
+                //        var authorId = UserSession.Instance.UserId;
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAuthor(authorId, cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        postData = postData.OrderBy(p => p.CreatedAt).ToList();
+                //        System.Console.WriteLine(authorId + cBBCategory.Text + cBBStatus.Text + txtSearch.Text);
+                //        dgvPost.DataSource = postData;
+                //    }
+                //    else
+                //    {
+                //        //var postData = new PostService(new PostRepository(new ApplicationDbContext())).SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        var postData = _postService.SearchByAdmin(cBBCategory.Text, cBBStatus.Text, txtSearch.Text);
+                //        postData = postData.OrderBy(p => p.CreatedAt).ToList();
+                //        dgvPost.DataSource = postData;
+                //    }
+                //}
+                LoadPostData(applySort: true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+            }
+        }
+        private void LoadPostData(bool applySort = false)
+        {
+            try
+            {
+                var category = cBBCategory.Text;
+                var status = cBBStatus.Text;
+                var keyword = txtSearch.Text;
+                var role = UserSession.Instance.Role;
+                var userId = UserSession.Instance.UserId;
+
+                List<PostManagerDTO> postData;
+                PostService postService = new PostService(new PostRepository(new ApplicationDbContext()));
+
+                if (role == "Author")
+                {
+                    postData = postService.SearchByAuthor(userId, category, status, keyword);
+                }
+                else
+                {
+                    postData = postService.SearchByAdmin(category, status, keyword);
+                }
+
+                // Apply sort if needed
+                string sortOption = cBBSort.Text.Trim();
+                if (applySort && !string.IsNullOrEmpty(sortOption))
+                {
+                    if (sortOption == "Thời gian từ hiện tại về trước")
+                    {
+                        postData = postData.OrderByDescending(p => p.CreatedAt).ToList();
+                    }
+                    else if (sortOption == "Thời gian từ trước đến hiện tại")
+                    {
+                        postData = postData.OrderBy(p => p.CreatedAt).ToList();
+                    }
+                }
+
+                dgvPost.DataSource = postData;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi tải dữ liệu bài viết: " + ex.Message);
+            }
         }
     }
 }

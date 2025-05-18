@@ -47,13 +47,12 @@ namespace WindowsFormsApp1.Presentation
         {
             var userService = new UserService(new UserRepository(new ApplicationDbContext()));
             var postService = new PostService(new PostRepository(new ApplicationDbContext()));
-
             var users = userService.GetAllUsers();
             var posts = postService.GetAllPosts();
-
             // Tạo danh sách DTO để hiển thị
-            var userData = MapUsersToUserWithPostCountDTO(users, posts);
-            // Đổ dữ liệu vào DataGridView
+            var userData = userService.MapUsersToUserWithPostCountDTO(users, posts);
+            userData = userData.OrderByDescending(p => p.CreatedAt).ToList();
+            dgvUser.DataSource = null;
             dgvUser.DataSource = userData;
             dgvUser.Columns["PostCount"].HeaderText = "Số bài đã đăng";
             dgvUser.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -65,60 +64,13 @@ namespace WindowsFormsApp1.Presentation
         {
             try
             {
-                var userService = new UserService(new UserRepository(new ApplicationDbContext()));
-                var postService = new PostService(new PostRepository(new ApplicationDbContext()));
-                //Neu text rong va Role la All
-                if (string.IsNullOrEmpty(textSearch.Text) && cBBRole.SelectedItem.ToString() == "All")
-                {
-                    LoadDataGridViewUser();
-                    return;
-                }
-                //Neu text rong va Role khong phai All
-                if (string.IsNullOrEmpty(textSearch.Text) && cBBRole.SelectedItem.ToString() != "All")
-                {
-                    var users = userService.GetListUserByRole(cBBRole.SelectedItem.ToString());
-                    var posts = postService.GetAllPosts();
-                    var userData = MapUsersToUserWithPostCountDTO(users, posts);
-                    dgvUser.DataSource = userData;
-                    return;
-                }
-                //Neu text khong rong va Role la All
-                if (!string.IsNullOrEmpty(textSearch.Text) && cBBRole.SelectedItem.ToString() == "All")
-                {
-                    var users = userService.GetListUserByUserName(textSearch.Text);
-                    var posts = postService.GetAllPosts();
-                    var userData = MapUsersToUserWithPostCountDTO(users, posts);
-                    dgvUser.DataSource = userData;
-                    return;
-                }
-                //Neu text khong rong va Role khong phai All
-                if (!string.IsNullOrEmpty(textSearch.Text) && cBBRole.SelectedItem.ToString() != "All")
-                {
-                    var users = userService.GetListUserByRoleAndUserName(cBBRole.SelectedItem.ToString(), textSearch.Text);
-                    var posts = postService.GetAllPosts();
-                    var userData = MapUsersToUserWithPostCountDTO(users, posts);
-                    dgvUser.DataSource = userData;
-                    return;
-                }
+                var userData = FilterAndSortUsers();
+                dgvUser.DataSource = userData;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("An error occurred while searching: " + ex.Message);
+                MessageBox.Show("Lỗi khi tìm kiếm: " + ex.Message);
             }
-        }
-        private List<UserWithPostCountDTO> MapUsersToUserWithPostCountDTO(IEnumerable<User> users, IEnumerable<Post> posts)
-        {
-            var userData = users.Select(u => new UserWithPostCountDTO
-            {
-                UserId = u.UserId,
-                Username = u.Username,
-                Email = u.Email,
-                PostCount = posts.Count(p => p.UserId == u.UserId),
-                Role = u.Role,
-                Password = u.Password,
-                CreatedAt = u.CreatedAt
-            }).ToList();
-            return userData;
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
@@ -131,7 +83,15 @@ namespace WindowsFormsApp1.Presentation
         {
             if (dgvUser.SelectedRows.Count == 1)
             {
+                //Admin được sửa chính mình
                 Guid ID = Guid.Parse(dgvUser.SelectedRows[0].Cells["UserId"].Value.ToString());
+                //Admin không được sửa admin
+                String role = dgvUser.SelectedRows[0].Cells["Role"].Value.ToString();
+                if (role == "Admin" && UserSession.Instance.UserId != ID)
+                {
+                    MessageBox.Show("Không thể sửa người dùng này vì họ là Admin", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
                 FormCreateEditUser editForm = new FormCreateEditUser(ID, LoadDGV);
                 editForm.ShowDialog();
             }
@@ -153,7 +113,18 @@ namespace WindowsFormsApp1.Presentation
 
             // Lấy ID người dùng được chọn
             Guid userId = Guid.Parse(dgvUser.SelectedRows[0].Cells["UserId"].Value.ToString());
-
+            //Admin không được xóa admin
+            if (userId == UserSession.Instance.UserId)
+            {
+                MessageBox.Show("Không thể xóa chính mình", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            String role = dgvUser.SelectedRows[0].Cells["Role"].Value.ToString();
+            if (role == "Admin")
+            {
+                MessageBox.Show("Không thể xóa người dùng này vì họ là Admin", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             // Kiểm tra người dùng có bài viết không
             var postService = new PostService(new PostRepository(new ApplicationDbContext()));
             if (postService.GetAllPosts().Any(p => p.UserId == userId))
@@ -167,18 +138,118 @@ namespace WindowsFormsApp1.Presentation
                 "Xác nhận xóa",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning,
-                MessageBoxDefaultButton.Button2); // Mặc định chọn No
+                MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
             {
                 var userService = new UserService(new UserRepository(new ApplicationDbContext()));
                 userService.DeleteUser(userId);
                 MessageBox.Show("Xóa người dùng thành công!", "Thành công",MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Cập nhật lại DataGridView
                 LoadDataGridViewUser();
             }
         }
         public void LoadDGV(DataTable li)
         {
             dgvUser.DataSource = li;
+        }
+
+        private void btnSort_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var userData = FilterAndSortUsers();
+                dgvUser.DataSource = userData;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi sắp xếp: " + ex.Message);
+            }
+        }
+        private List<UserWithPostCountDTO> FilterAndSortUsers()
+        {
+            var userService = new UserService(new UserRepository(new ApplicationDbContext()));
+            var postService = new PostService(new PostRepository(new ApplicationDbContext()));
+
+            var posts = postService.GetAllPosts();
+            
+            List<User> users = new List<User>();
+            
+            string searchText = textSearch.Text.Trim();
+            string selectedRole = cBBRole.SelectedItem?.ToString() ?? "All";
+
+            if (string.IsNullOrEmpty(searchText) && selectedRole == "All")
+            {
+                users = userService.GetAllUsers();
+            }
+            else if (string.IsNullOrEmpty(searchText))
+            {
+                users = userService.GetListUserByRole(selectedRole);
+            }
+            else if (selectedRole == "All")
+            {
+                users = userService.GetListUserByUserName(searchText);
+            }
+            else
+            {
+                users = userService.GetListUserByRoleAndUserName(selectedRole, searchText);
+            }
+
+            var userData = userService.MapUsersToUserWithPostCountDTO(users, posts);
+
+            // Sắp xếp theo lựa chọn
+            switch (cBBSort.SelectedIndex)
+            {
+                case 0: // Mặc định hoặc từ mới đến cũ
+                case -1:
+                    userData = userData.OrderByDescending(u => u.CreatedAt).ToList();
+                    break;
+                case 1: // Từ cũ đến mới
+                    userData = userData.OrderBy(u => u.CreatedAt).ToList();
+                    break;
+                case 2: // Số bài viết giảm dần
+                    userData = userData.OrderByDescending(u => u.PostCount).ToList();
+                    break;
+                case 3: // Số bài viết tăng dần
+                    userData = userData.OrderBy(u => u.PostCount).ToList();
+                    break;
+            }
+
+            return userData;
+        }
+
+        //private List<UserWithPostCountDTO> SortUsers(List<UserWithPostCountDTO> users)
+        //{
+        //    if (cBBSort.Text == "")
+        //    {
+        //        return users.OrderBy(u => u.CreatedAt).ToList();
+        //    }
+        //    else if (cBBSort.SelectedIndex == 0)
+        //    {
+        //        return users.OrderByDescending(u => u.CreatedAt).ToList();
+        //    }
+        //    else if (cBBSort.SelectedIndex == 1)
+        //    {
+        //        return users.OrderBy(u => u.CreatedAt).ToList();
+        //    }
+        //    else if (cBBSort.SelectedIndex == 2)
+        //    {
+        //        return users.OrderByDescending(u => u.PostCount).ToList();
+        //    }
+        //    else if (cBBSort.SelectedIndex == 3)
+        //    {
+        //        return users.OrderBy(u => u.PostCount).ToList();
+        //    }
+        //    return users;
+        //}
+
+        private void cBBSort_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnSearch_Click(sender, e);
+        }
+
+        private void cBBRole_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            btnSearch_Click(sender, e);
         }
     }
 }

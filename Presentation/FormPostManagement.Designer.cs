@@ -156,13 +156,12 @@
             this.btnSort.TabIndex = 12;
             this.btnSort.Text = "Sắp xếp";
             this.btnSort.UseVisualStyleBackColor = true;
+            this.btnSort.Click += new System.EventHandler(this.btnSort_Click);
             // 
             // cBBSort
             // 
             this.cBBSort.FormattingEnabled = true;
             this.cBBSort.Items.AddRange(new object[] {
-            "Bình luận từ cao đến thấp",
-            "Bình luận từ thấp đến cao",
             "Thời gian từ trước đến hiện tại",
             "Thời gian từ hiện tại về trước"});
             this.cBBSort.Location = new System.Drawing.Point(656, 417);
